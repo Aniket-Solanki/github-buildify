@@ -1,4 +1,0 @@
-Deploy: Add Docker configuration
-
-- Setup production-ready Dockerfile
-- Add .dockerignore to exclude virtual envs and temp files

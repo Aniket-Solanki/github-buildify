@@ -238,7 +238,9 @@ async def force_https_and_security_headers(request: Request, call_next):
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         return response
     except Exception as e:
-        return Response("Bad Request", status_code=400)
+        import traceback
+        traceback.print_exc()
+        return Response(f"Internal Error: {str(e)}", status_code=500)
 
 @app.middleware("http")
 async def validate_requests(request: Request, call_next):
