@@ -44,9 +44,16 @@ async def login(request: Request):
         logger.error({"message": "GitHub Client ID not configured"})
         raise HTTPException(status_code=500, detail="Authentication service temporarily unavailable")
 
+    callback_url = os.getenv("CALLBACK_URL")
+    if not callback_url or "localhost" in callback_url and "vercel" in str(request.url):
+        callback_url = str(request.url_for('callback'))
+        from core.config import ENV
+        if ENV == "production" and callback_url.startswith("http://"):
+            callback_url = callback_url.replace("http://", "https://", 1)
+
     params = {
         "client_id": github_client_id,
-        "redirect_uri": os.getenv("CALLBACK_URL"),
+        "redirect_uri": callback_url,
         "scope": "repo user",
         "state": state,
         "response_type": "code"
