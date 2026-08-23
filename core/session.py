@@ -10,7 +10,7 @@ from typing import Optional, Dict, Any
 
 from pydantic import BaseModel, field_validator
 
-from core.config import redis_client, SESSION_EXPIRY_SECONDS
+from core.config import redis_client, SESSION_EXPIRY_SECONDS, SESSION_COOKIE_NAME
 
 logger = logging.getLogger(__name__)
 
