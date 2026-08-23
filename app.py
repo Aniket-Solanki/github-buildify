@@ -247,7 +247,7 @@ async def validate_requests(request: Request, call_next):
     if request.url.path == "/health":
         return await call_next(request)
     if not hasattr(request, 'method') or not request.method:
-        return Response("Bad Request", status_code=400)
+        return Response("Bad Request: Missing HTTP Method in Vercel Proxy", status_code=400)
     if request.url.path and any(
             suspicious in request.url.path.lower() for suspicious in ['../', '.env', 'config', 'admin']):
         return Response("Not Found", status_code=404)
