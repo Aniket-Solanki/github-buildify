@@ -238,16 +238,14 @@ async def force_https_and_security_headers(request: Request, call_next):
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         return response
     except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return Response(f"Internal Error: {str(e)}", status_code=500)
+        return Response("Bad Request", status_code=400)
 
 @app.middleware("http")
 async def validate_requests(request: Request, call_next):
     if request.url.path == "/health":
         return await call_next(request)
     if not hasattr(request, 'method') or not request.method:
-        return Response("Bad Request: Missing HTTP Method in Vercel Proxy", status_code=400)
+        return Response("Bad Request", status_code=400)
     if request.url.path and any(
             suspicious in request.url.path.lower() for suspicious in ['../', '.env', 'config', 'admin']):
         return Response("Not Found", status_code=404)
