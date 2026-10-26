@@ -56,6 +56,16 @@ def generate_resume_pdf(resume_data: Dict[str, Any]) -> io.BytesIO:
         firstLineIndent=-10,
     )
 
+    # New style for code metrics
+    metrics_style = ParagraphStyle(
+        'MetricsStyle',
+        parent=styles['Normal'],
+        fontSize=10,
+        spaceAfter=8,
+        leading=14,
+        textColor=colors.HexColor("#64748b"),
+    )
+
     story = []
 
     # Project Title
@@ -66,6 +76,19 @@ def generate_resume_pdf(resume_data: Dict[str, Any]) -> io.BytesIO:
     if resume_data.get('tech_stack'):
         story.append(Paragraph("<b>Technology Stack</b>", heading_style))
         story.append(Paragraph(resume_data['tech_stack'], normal_style))
+        story.append(Spacer(1, 10))
+
+    # Code Metrics (new)
+    if resume_data.get('code_metrics'):
+        story.append(Paragraph("<b>Code Metrics</b>", heading_style))
+        metrics = resume_data['code_metrics']
+        metrics_text = f"\nTotal Functions: {metrics.get('total_functions', 0)}\n"
+        metrics_text += f"Total Classes: {metrics.get('total_classes', 0)}\n"
+        languages = metrics.get('languages', {})
+        if languages:
+            lang_list = ', '.join(languages.keys())
+            metrics_text += f"Languages: {lang_list}\n"
+        story.append(Paragraph(metrics_text, metrics_style))
         story.append(Spacer(1, 10))
 
     # Key Contributions (Bullet Points)

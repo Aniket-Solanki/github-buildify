@@ -107,6 +107,7 @@ Transform raw codebase analysis into high-impact professional narrative by ident
 - **Codebase Summary**: `{gitingest_summary}`
 - **Project Structure**: `{gitingest_tree}`
 - **Implementation Details**: `{gitingest_content}`
+- **Code Metrics**: `{gitingest_code_metrics}`
 - **Target Role Context**: `{job_description}`
 
 ## ⚡ Final Instructions
@@ -162,14 +163,23 @@ async def _emit_ws_message(websocket: Optional[WebSocket], msg_type: str, conten
 
 
 def _build_prompt(gitingest_summary: str, gitingest_tree: str, gitingest_content: str,
-                  job_description: Optional[str]) -> str:
+                  job_description: Optional[str], gitingest_code_metrics: Optional[Dict[str, Any]] = None) -> str:
     """Constructs the final prompt for the AI model."""
-    job_desc_text = f"The user is applying for a job with this description: {job_description.strip()}" if job_description else "N/A"
+    job_desc_text = "The user is applying for a job with this description: {}".format(job_description.strip()) if job_description else "N/A"
+    code_metrics_text = ""
+    if gitingest_code_metrics:
+        lang_stats = gitingest_code_metrics.get('code_metrics', {})
+        total_func = lang_stats.get('total_functions', 0)
+        total_class = lang_stats.get('total_classes', 0)
+        languages = lang_stats.get('languages', {})
+        lang_list = ', '.join(languages.keys()) if languages else 'N/A'
+        code_metrics_text = f"\\nCode Metrics:\\n- Total Functions: {total_func}\\n- Total Classes: {total_class}\\n- Languages: {lang_list}"
     return RESUME_PROMPT_TEMPLATE.format(
         job_description=job_desc_text,
         gitingest_summary=gitingest_summary,
         gitingest_tree=gitingest_tree,
         gitingest_content=gitingest_content,
+        gitingest_code_metrics=code_metrics_text,
     )
 
 
@@ -228,6 +238,7 @@ async def create_resume_tool(
         project_name: Optional[str] = None,
         job_description: Optional[str] = None,
         websocket: Optional[WebSocket] = None,
+        gitingest_code_metrics: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Main tool to generate a resume section from repository analysis.
@@ -240,6 +251,7 @@ async def create_resume_tool(
         project_name: An optional name for the project.
         job_description: An optional job description to tailor the output.
         websocket: An optional WebSocket for streaming status updates.
+        gitingest_code_metrics: Optional code metrics from gitingest analysis.
 
     Returns:
         A dictionary containing the generated resume content or an error.
@@ -264,13 +276,17 @@ async def create_resume_tool(
         content_truncated = len(gitingest_content) > max_chars
         truncated_content = gitingest_content[:max_chars] if content_truncated else gitingest_content
 
-        prompt = _build_prompt(str(gitingest_summary), gitingest_tree, truncated_content, job_description)
+        prompt = _build_prompt(str(gitingest_summary), gitingest_tree, truncated_content, job_description, gitingest_code_metrics)
 
         resume_data = await _generate_and_parse_response(prompt)
 
         corrected_data = await correct_resume_grammar(resume_data)
 
-        # Ensure final data structure is sound
+        # Ensure final data structure is sound        # Extract code metrics from gitingest if available
+        code_metrics_data = None
+        if gitingest_code_metrics and gitingest_code_metrics.get('code_metrics'):
+            code_metrics_data = gitingest_code_metrics['code_metrics']
+
         final_result = {
             "success": True,
             "project_title": corrected_data.get("project_title", project_name or "N/A"),
@@ -281,6 +297,7 @@ async def create_resume_tool(
             "potential_advancements": corrected_data.get("potential_advancements", ""),
             "interview_questions": corrected_data.get("interview_questions", []),
             "context_truncated": content_truncated,
+            "code_metrics": code_metrics_data,
         }
         await _emit_ws_message(websocket, "complete", "Generation successful!", generation_id)
         logger.info(f"Resume generation successful for generation ID: {generation_id}")
