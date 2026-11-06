@@ -1,0 +1,11 @@
+# Global owners
+* @Aniket-Solanki
+
+# Documentation
+*.md @Aniket-Solanki
+
+# CI/CD
+.github/workflows/* @Aniket-Solanki
+
+# Security
+SECURITY.md @Aniket-Solanki
