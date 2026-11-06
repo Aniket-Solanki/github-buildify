@@ -47,7 +47,7 @@ mdurl==0.1.2
 openai==1.86.0
 orjson==3.10.18
 packaging==25.0
-proto-plus==1.26.1
+proto-plus==1.29.0
 protobuf==4.25.8
 psutil==6.0.0
 pyasn1==0.6.1
