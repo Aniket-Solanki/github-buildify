@@ -89,7 +89,7 @@ tree-sitter-rust==0.21.1
 tree-sitter-typescript==0.21.0
 typer==0.16.0
 typing-inspection==0.4.1
-typing_extensions==4.14.0
+typing_extensions==4.16.0
 tzdata==2025.2
 ujson==5.10.0
 uritemplate==4.2.0
